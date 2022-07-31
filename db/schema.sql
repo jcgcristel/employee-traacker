@@ -3,13 +3,13 @@ DROP TABLE IF EXISTS employee_role;
 DROP TABLE IF EXISTS department;
 
 CREATE TABLE department (
-    id INTEGER PRIMARY KEY,
+    id INTEGER AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(30)
 );
 
 CREATE TABLE employee_role (
-    id INTEGER PRIMARY KEY,
-    title VARCHAR(30),
+    id INTEGER AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(50),
     salary DECIMAL(10,2),
     department_id INTEGER,
     CONSTRAINT fk_department FOREIGN KEY (department_id) REFERENCES department(id) ON DELETE SET NULL
