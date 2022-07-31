@@ -35,7 +35,7 @@ router.get('/role/:id', (req, res) => {
 // POST request to add an employee role
 router.post('/role', ({body}, res) => {
     const sql = `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
-    const params = [body.title, body.salary, department_id];
+    const params = [body.title, body.salary, body.department_id];
 
     db.query(sql, params, (e) => {
         if (e) {
@@ -52,13 +52,13 @@ router.post('/role', ({body}, res) => {
 
 
 // DELETE request to delete an employee role
-router.delete('/roles/:id', (req, res) => {
-    const sql = `DELETE FROM employee_role WHERE id = ?`;
+router.delete('/role/:id', (req, res) => {
+    const sql = `DELETE FROM roles WHERE id = ?`;
     const params = [req.params.id];
 
     db.query(sql, params, (e, qRes) => {
         if (e) {
-            res.statusMessage(400).json({error: res.message});
+            res.status(400).json({error: res.message});
         } else if (!qRes.affectedRows) {
             res.json({message: 'Employee role not found'});
         } else {
