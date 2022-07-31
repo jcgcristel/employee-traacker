@@ -6,15 +6,15 @@ const db = require('../../db/connection');
 router.get('/roles', (req, res) => {
     const sql = `SELECT * FROM roles`;
 
-    db.query(sql, (e, employee_roles) => {
+    db.query(sql, (e, roles) => {
         if (e) {
             res.status(400).json({error: e.message});
             return;
         }
 
-        res.json({employee_roles});
+        res.json({roles});
     });
-})
+});
 
 
 // GET request to get specific employee role by id
@@ -22,13 +22,13 @@ router.get('/role/:id', (req, res) => {
     const sql = `SELECT * FROM roles WHERE id = ?`;
     const params = [req.params.id];
 
-    db.query(sql, params, (e, employee_role) => {
+    db.query(sql, params, (e, role) => {
         if (e) {
             res.status(400).json({error: e.message});
             return;
         };
 
-        res.json({employee_role});
+        res.json({role});
     })
 });
 
@@ -60,7 +60,7 @@ router.delete('/role/:id', (req, res) => {
         if (e) {
             res.status(400).json({error: res.message});
         } else if (!qRes.affectedRows) {
-            res.json({message: 'Employee role not found'});
+            res.json({message: 'employee role not found'});
         } else {
             res.json({
                 message: 'employee role deleted',
