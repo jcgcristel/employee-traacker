@@ -43,9 +43,30 @@ router.post('/department', ({body}, res) => {
         }
 
         res.json({
+            message: 'department created',
             data: body
         });
     });
-})
+});
+
+// DELETE request to delete a department
+router.delete('/department/:id', (req, res) => {
+    const sql = `DELETE FROM departments WHERE id = ?`;
+    const params = [req.params.id];
+
+    db.query(sql, params, (e, qRes) => {
+        if (e) {
+            res.statusMessage(400).json({error: res.message});
+        } else if (!qRes.affectedRows) {
+            res.json({message: 'Department not found'});
+        } else {
+            res.json({
+                message: 'department deleted',
+                changes: qRes.affectedRows,
+                id: req.params.id
+            });
+        }
+    })
+});
 
 module.exports = router;
