@@ -2,39 +2,40 @@ const express = require('express');
 const router = express.Router();
 const db = require('../../db/connection');
 
-// GET request to get departments
-router.get('/departments', (req, res) => {
-    const sql = `SELECT * FROM departments`;
+// GET request to get employee roles
+router.get('/roles', (req, res) => {
+    const sql = `SELECT * FROM roles`;
 
-    db.query(sql, (e, departments) => {
+    db.query(sql, (e, employee_roles) => {
         if (e) {
             res.status(400).json({error: e.message});
             return;
         }
 
-        res.json({departments});
+        res.json({employee_roles});
     });
-});
+})
 
-// GET request to get specific department by id
-router.get('/department/:id', (req, res) => {
-    const sql = `SELECT * FROM departments WHERE id = ?`;
+
+// GET request to get specific employee role by id
+router.get('/role/:id', (req, res) => {
+    const sql = `SELECT * FROM roles WHERE id = ?`;
     const params = [req.params.id];
 
-    db.query(sql, params, (e, department) => {
+    db.query(sql, params, (e, employee_role) => {
         if (e) {
             res.status(400).json({error: e.message});
             return;
         };
 
-        res.json({department});
+        res.json({employee_role});
     })
 });
 
-// POST request to add a department
-router.post('/department', ({body}, res) => {
-    const sql = `INSERT INTO departments (name) VALUES (?)`;
-    const params = [body.name];
+// POST request to add an employee role
+router.post('/role', ({body}, res) => {
+    const sql = `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
+    const params = [body.title, body.salary, department_id];
 
     db.query(sql, params, (e) => {
         if (e) {
@@ -43,25 +44,26 @@ router.post('/department', ({body}, res) => {
         }
 
         res.json({
-            message: 'department created',
+            message: 'employee role created',
             data: body
         });
     });
 });
 
-// DELETE request to delete a department
-router.delete('/department/:id', (req, res) => {
-    const sql = `DELETE FROM departments WHERE id = ?`;
+
+// DELETE request to delete an employee role
+router.delete('/roles/:id', (req, res) => {
+    const sql = `DELETE FROM employee_role WHERE id = ?`;
     const params = [req.params.id];
 
     db.query(sql, params, (e, qRes) => {
         if (e) {
             res.statusMessage(400).json({error: res.message});
         } else if (!qRes.affectedRows) {
-            res.json({message: 'Department not found'});
+            res.json({message: 'Employee role not found'});
         } else {
             res.json({
-                message: 'department deleted',
+                message: 'employee role deleted',
                 changes: qRes.affectedRows,
                 id: req.params.id
             });

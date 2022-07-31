@@ -4,13 +4,13 @@ INSERT INTO departments (name) VALUES
     ('Kanjou Commission'),
     ('Yashiro Commission');
 
-INSERT INTO employee_roles (title, salary, department_id) VALUES
+INSERT INTO roles (title, salary, department_id) VALUES
     ('Raiden Shogun', 250000, 1),
     ('Tenryou Commisioner', 150000, 2),
     ('Kanjou Commissioner', 150000, 3),
     ('Yashiro Commissioner', 150000, 4);
 
-INSERT INTO employees (id, first_name, last_name, employee_role_id, manager_id) VALUES
+INSERT INTO employees (id, first_name, last_name, role_id, manager_id) VALUES
     (1000, 'Makoto', 'Raiden', 1, NULL),
     (1001, 'Ei', 'Raiden', 1, NULL),
     (2000, 'Kamaji', 'Kujou', 2, 1001),
