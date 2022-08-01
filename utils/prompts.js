@@ -29,7 +29,7 @@ const menu = [
     'Add a department',
     'Add a role',
     'Add an employee',
-    'Update an employee role',
+    `Update an employee's role`,
     'QUIT'
 ];
 
@@ -81,7 +81,8 @@ const main = function() {
                 case 'Add an employee':
                     addEmployee();
                     break;
-                case 'Update an employee role':
+                case `Update an employee's role`:
+                    updateEmployeeRole();
                     break;
                 case 'QUIT':
                     exit();
@@ -91,7 +92,6 @@ const main = function() {
             };
         });
 };
-
 
 // Display table results
 const view = function(table) {
@@ -178,6 +178,26 @@ const addRole = function() {
             });
     });
 }
+
+// get id of a row of a table given conditional statement
+const getId = function(table, conditionName, conditionValue) {
+    const sql = `SELECT id FROM ?? WHERE ?? = ? LIMIT 1`;
+    const params = [table, conditionName, conditionValue];
+
+    return new Promise((resolve, reject) => {
+        if (true) {
+            db.query(sql, params, function(e, rowId) {
+                if (e) throw e;
+                
+                let id = rowId[0].id;
+                resolve(id);
+            })
+        }    
+    });
+}
+
+// // get values of a table given a conditional statement 
+// const getRows =
 
 // Add employee
 const addEmployee = function() {
@@ -268,18 +288,60 @@ const addEmployee = function() {
                                 if (e) throw e;
                                 console.log(`\nAdded a new employee named '${answer.first_name} ${answer.last_name}'\n`);
                                 backToMain();
-                            })
-                        })              
-                    })
+                            });
+                        });           
+                    });
                 });
-        })
-    })
-}
+        });
+    });
+};
 
 // Update role
-const updateRole = function() {
-    const sql = 
-}
+const updateEmployeeRole = function() {
+    getId('departments', 'name', 'Yashiro Commission')
+        .then(val => console.log(val));
+
+    // // Select statement to get list of employee names
+    // const sqlEmployeeName = `SELECT first_name, last_name FROM employees`;
+    // db.query(sqlEmployeeName, (e, employeeName) => {
+    //     if (e) throw e;
+
+    //     // Makes an array of employee names
+    //     let employeeArr = [];
+    //     employeeName.map(val => employeeArr.push(`${val.first_name} ${val.last_name}`));
+        
+    //     // Select statement to get list of roles
+    //     const sqlRoleName = `SELECT title FROM roles`;
+    //     db.query(sqlRoleName, (e, roleName) => {
+    //         if (e) throw e;
+
+    //         // Makes an array of role names
+    //         let roleArr = [];
+    //         roleName.map(val => roleArr.push(`${val.title}`));
+
+    //         // Start inquiry to update employee role, first prompting a list of employee role
+    //         line();
+    //         inquirer.prompt([
+    //             {
+    //                 type: 'list',
+    //                 name: 'employee',
+    //                 choices: employeeArr,
+    //                 message: 'Choose an employee to edit:'
+    //             },
+    //             {
+    //                 type: 'list',
+    //                 name: 'role',
+    //                 choices: roleArr,
+    //                 message: 'Role of selected employee:'
+    //             }
+    //         ])
+    //             .then(answer => {
+    //                 // Find employee id of selected employee
+                    
+    //             });
+    //     });
+    // });
+};
 
 module.exports = main;
 
