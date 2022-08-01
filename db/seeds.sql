@@ -18,3 +18,6 @@ INSERT INTO employees (id, first_name, last_name, role_id, manager_id) VALUES
     (3000, 'Chisato', 'Hiiragi', 3, 1001),
     (4000, 'Ayato', 'Kamisato', 4, 1001),
     (4001, 'Ayaka', 'Kamisato', NULL, 4000);
+
+UPDATE employees
+SET full_name = CONCAT(first_name, ' ', last_name);
