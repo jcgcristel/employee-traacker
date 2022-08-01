@@ -1,10 +1,7 @@
 const inquirer = require("inquirer");
-const cTable = require('console.table');
+const ctable = require('console.table');
 const { exit } = require("process");
-const { post } = require("../routes/apiRoutes");
-// const fetch = require()
-
-const URL = 'http://localhost:3001/api';
+const db = require('../db/connection');
 
 const line = function() {
     return console.log('--------------------------------------------------');
@@ -78,29 +75,35 @@ const main = function() {
                 case 'Add a department':
                     addDepartment();
                     break;
-                case 'Add a role:':
+                case 'Add a role':
+                    addRole();
                     break;
                 case 'Add an employee':
                     break;
                 case 'Update an employee role':
                     break;
+                case 'QUIT':
+                    exit();
                 default:
+                    console.log('Choice not configured');
                     exit();
             };
         });
 };
 
 
-// GET request to view table as stated in the parameter
+// Display table results
 const view = function(table) {
     line();
-    fetch(`${URL}/${table}`)
-        .then((response) => response.json())
-        .then((data) => console.table(Object.values(data)[0]))
-        .then(backToMain);
+    const sql = `SELECT * FROM ${table}`;
+    db.query(sql, (e, res) => {
+        if (e) throw e;
+        console.table(res);
+        backToMain();
+    })
 }
 
-// POST request add a department
+// Add department
 const addDepartment = function() {
     line();
     inquirer.prompt([{
@@ -108,15 +111,80 @@ const addDepartment = function() {
         name: 'name',
         message: 'Department name:'
     }])
-        .then((name) => {
-            console.log(`Created department name of '${name}'`);
-
-            // post(`${URL}/department`, {
-            //     body: name
-            // });
-
+        .then((answer) => {
+            const sql = `INSERT INTO departments (name) VALUES (?)`;
+            const params = [answer.name];
+            
+            db.query(sql, params, (e) => {
+                if (e) throw e;                
+                console.log(`\nCreated department named '${answer.name}'\n`);
+                backToMain();
+            })
         })
-        .then(backToMain);    
+}
+
+// Add role
+const addRole = function() {
+    // Select statement to get list of department names
+    const sqlDeptName = `SELECT name FROM departments`;
+    db.query(sqlDeptName, (e, deptName) => {
+        if (e) throw e;
+
+        let deptArr = [];
+        // makes an array of department names
+        deptName.map(val => deptArr.push(val.name));
+
+        // Start inquiry to create a new role
+        line();
+        inquirer.prompt([
+            {
+                type: 'input',
+                name: 'title',
+                message: 'Title:'
+            },
+            {
+                type: 'input',
+                name: 'salary',
+                message: 'Salary:'
+            },
+            {
+                type: 'list',
+                name: 'department',
+                choices: deptArr,
+                message: 'Department:'
+            }
+        ])
+            .then((answer) => {
+                // Find dept id of selected department
+                const sqlDeptId = `SELECT id FROM departments WHERE name = '${answer.department}' LIMIT 1`;
+                db.query(sqlDeptId, (e, deptId) => {
+                    let department_id = deptId[0].id;
+                    
+                    // Add new role into roles table
+                    const sql = `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
+                    const params = [answer.title, answer.salary, department_id];
+                    db.query(sql, params, e => {
+                        if (e) throw e;
+                        console.log(`\nCreated a new role named '${answer.title}\n'`);
+                        backToMain();
+                    })
+
+
+
+                })
+
+                const sql = `INSERT INTO (title, salary, department_id)`
+            });
+    });
+}
+
+// Add employee
+const addEmployee = function() {
+    // Select statement to get list of role names
+    const sqlRoleName = `SELECT name FROM roles`;
+    db.query(sqlRoleName, (e, roleName) => {
+        if (e) throw e;
+    })
 }
 
 module.exports = main;
