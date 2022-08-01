@@ -44,7 +44,7 @@ router.post('/role', ({body}, res) => {
         }
 
         res.json({
-            message: 'employee role created',
+            message: 'role created',
             data: body
         });
     });
@@ -60,10 +60,10 @@ router.delete('/role/:id', (req, res) => {
         if (e) {
             res.status(400).json({error: res.message});
         } else if (!qRes.affectedRows) {
-            res.json({message: 'employee role not found'});
+            res.json({message: 'role not found'});
         } else {
             res.json({
-                message: 'employee role deleted',
+                message: 'role deleted',
                 changes: qRes.affectedRows,
                 id: req.params.id
             });
