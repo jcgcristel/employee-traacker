@@ -24,11 +24,6 @@ db.connect(e => {
     if (e) throw e;
 
     console.log('Connected.');
-
-    // Start server after connection to database
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}.`);
-
-        main();
-    });
+    
+    main();
 });

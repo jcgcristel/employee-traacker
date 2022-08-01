@@ -1,3 +1,4 @@
 node_modules/
 acceptance_criteria.txt
 package-lock.json
+server/
