@@ -2,7 +2,6 @@ const inquirer = require("inquirer");
 const ctable = require('console.table');
 const { exit } = require("process");
 const db = require('../db/connection');
-const { get } = require("http");
 
 const line = function() {
     return console.log('--------------------------------------------------');
@@ -103,7 +102,43 @@ const view = function(table) {
         console.table(res);
         backToMain();
     })
-}
+};
+
+// get id of a row of a table given a conditional statement
+const getId = function(table, conditionName, conditionValue) {
+    const sql = `SELECT id FROM ?? WHERE ?? = ? LIMIT 1`;
+    const params = [table, conditionName, conditionValue];
+    return new Promise((resolve, reject) => {
+        db.query(sql, params, (e, res) => {
+            if (e) throw e;
+            // Handler if ID doesn't exist
+            if (!res.length)
+            {
+                resolve(null);
+            } else {
+                // get id given a row
+                resolve(res[0].id);
+            }            
+        });      
+    });
+};
+
+// Get column of a table given its name
+const getColumn = function(colummn, table) {
+    const sql = `SELECT ?? FROM ??`;
+    const params = [colummn, table];
+
+    return new Promise((resolve, reject) => {
+        db.query(sql, params, (e, res) => {
+            if (e) throw e;
+            // Array to hold values of column
+            let columnArray = [];
+            // Adds values from column to array
+            res.map(data => columnArray.push(Object.values(data)[0]));
+            resolve(columnArray);
+        })
+    });
+};
 
 // Add department
 const addDepartment = function() {
@@ -125,118 +160,78 @@ const addDepartment = function() {
         })
 }
 
-// Add role
-const addRole = function() {
-    // Select statement to get list of department names
-    const sqlDeptName = `SELECT name FROM departments`;
-    db.query(sqlDeptName, (e, deptName) => {
-        if (e) throw e;
+// Insert into roles tables
 
-        let deptArr = [];
-        // makes an array of department names
-        deptName.map(val => deptArr.push(val.name));
-
-        // Start inquiry to create a new role
-        line();
-        inquirer.prompt([
-            {
-                type: 'input',
-                name: 'title',
-                message: 'Title:'
-            },
-            {
-                type: 'input',
-                name: 'salary',
-                message: 'Salary:'
-            },
-            {
-                type: 'list',
-                name: 'department',
-                choices: deptArr,
-                message: 'Department:'
-            }
-        ])
-            .then((answer) => {
-                // Find dept id of selected department
-                const sqlDeptId = `SELECT id FROM departments WHERE name = '${answer.department}' LIMIT 1`;
-                db.query(sqlDeptId, (e, deptId) => {
-                    let department_id = deptId[0].id;
-                    
-                    // Add new role into roles table
-                    const sql = `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
-                    const params = [answer.title, answer.salary, department_id];
-                    db.query(sql, params, e => {
-                        if (e) throw e;
-                        console.log(`\nAdded a new role named '${answer.title}\n'`);
-                        backToMain();
-                    })
-
-
-
-                })
-
-                const sql = `INSERT INTO (title, salary, department_id)`
-            });
-    });
-}
-
-// get id of a row of a table given a conditional statement
-const getId = function(table, conditionName, conditionValue) {
-    const sql = `SELECT id FROM ?? WHERE ?? = ? LIMIT 1`;
-    const params = [table, conditionName, conditionValue];
-    return new Promise((resolve, reject) => {
-        db.query(sql, params, (e, res) => {
-            if (e) throw e;
-            // Handler if ID doesn't exist
-            if (!res.length)
-            {
-                resolve(null);
-            } else {
-                // get id given a row
-                resolve(res[0].id);
-            }            
-        });      
-    });
-}
-
-// Get column of a table given its name
-const getColumn = function(colummn, table) {
-    const sql = `SELECT ?? FROM ??`;
-    const params = [colummn, table];
-
-    return new Promise((resolve, reject) => {
-        db.query(sql, params, (e, res) => {
-            if (e) throw e;
-            // Array to hold values of column
-            let columnArray = [];
-            // Adds values from column to array
-            res.map(data => columnArray.push(Object.values(data)[0]));
-            resolve(columnArray);
-        })
-    });
-}
-
-// Set full name to be called during employee creation
-const setFullName = function(firstName, lastName) {
-    const sql = `UPDATE employees SET full_name = CONCAT(?, ' ', ?)`;
-    const params = [firstName, lastName];
+// Add role to roles table
+const addRoleSql = function(title, salary, departmentId) {
+    const sql = `INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)`;
+    const params = [title, salary, departmentId];
     db.query(sql, params, e => {
         if (e) throw e;
     })
 };
 
-// Insert into employee table
-const insertEmployee = function(firstName, lastName, id, role, manager) {
-    const sql = `INSERT INTO employees (first_name, last_name, id, role_id, manager_id) VALUES (?, ?, ?, ? , ?)`;
-    const params = [firstName, lastName, id, role, manager];
+const addRole = function() {
+    // Get list of department names
+    getColumn('name', 'departments')
+        .then(results => {
+            line();
+            // Start inquirer to create a new department
+            inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'title',
+                    message: 'Title:'
+                },
+                {
+                    type: 'input',
+                    name: 'salary',
+                    message: 'Salary:'
+                },
+                {
+                    type: 'list',
+                    name: 'department',
+                    choices: results,
+                    message: 'Department:'
+                }
+            ])
+                .then(answer => {
+                    // Gets id of selected department
+                    let getDepartmentId = getId('departments', 'name', answer.department);
+
+                    // Promise handlder to get department id
+                    Promise.all([answer, getDepartmentId])
+                        .then(results => {
+                            // Parse answer from previous function
+                            let answer = results[0];
+                            // Adds role to roles table
+                            addRoleSql(answer.title, answer.salary, results[1]);
+                            console.log(`\nAdded new role by name ${title}.\n`);
+                            backToMain();
+                        });
+                });
+        });
+};
+
+// Set full name to be called during employee creation
+const setFullNameSql = function(firstName, lastName) {
+    const sql = `UPDATE employees SET full_name = CONCAT(?, ' ', ?) WHERE first_name = ? AND last_name = ?`;
+    const params = [firstName, lastName, firstName, lastName];
     db.query(sql, params, e => {
         if (e) throw e;
-        setFullName(firstName, lastName);
-        console.log(`\nAdded new employee by baned '${firstName} ${lastName}'`);
-    });
-}
+    })
+};
 
-// Add employee to employee table
+// Add into employee table
+const addEmployeeSql = function(firstName, lastName, id, roleId, managerId) {
+    const sql = `INSERT INTO employees (first_name, last_name, id, role_id, manager_id) VALUES (?, ?, ?, ? , ?)`;
+    const params = [firstName, lastName, id, roleId, managerId];
+    db.query(sql, params, e => {
+        if (e) throw e;
+        setFullNameSql(firstName, lastName);
+    });
+};
+
 const addEmployee = function() {
     // Get list of role names
     let getRoles = getColumn('title', 'roles');
@@ -288,168 +283,80 @@ const addEmployee = function() {
             ])
             .then((answer) => {
                 // Gets id of selected role
-                let getRolesId = getId('roles', 'title', answer.role);                
+                let getRoleId = getId('roles', 'title', answer.role);                
                 // Get id of selected employee
                 let getEmployeeId = getId('employees', 'full_name', answer.manager);
                 
                 // Promise handler to get ids of roles and employees
-                Promise.all([answer, getRolesId, getEmployeeId])
+                Promise.all([answer, getRoleId, getEmployeeId])
                     .then(results => {
                         // Parse answer from previous function
                         let answer = results[0];
                         // Adds employee to employees table
-                        insertEmployee(answer.first_name, answer.last_name, answer.id, results[1], results[2]);
+                        addEmployeeSql(answer.first_name, answer.last_name, answer.id, results[1], results[2]);
+                        console.log(`\nAdded new employee named ${answer.first_name} ${answer.last_name}.\n`)
                         backToMain();
                     });
             });
         });
+};
+
+
+// Update employee's role (and their department as a result)
+const updateEmployeeRoleSql = function(employeeId, roleId) {
+    const sql = `UPDATE employees SET role_id = ? WHERE id = ?`;
+    const params = [roleId, employeeId];
+    console.log(db.query(sql, params, e => {
+        if (e) throw e;
+    }));
 }
 
-// Add employee
-const addEmployeeOld = function() {
-    // Select statement to get list of role names
-    const sqlRoleName = `SELECT title FROM roles`;
-    db.query(sqlRoleName, (e, roleTitle) => {
-        if (e) throw e;
+const updateEmployeeRole = function() {
+    // Get list of employee names
+    let getEmployees = getColumn('full_name', 'employees');
+    // Get list of roles names
+    let getRoles = getColumn('title','roles');
 
-        let roleArr = ['NONE'];
-        // Makes an array of role names
-        roleTitle.map(val => roleArr.push(val.title));
-
-        // Select statement to get list of employees
-        const sqlEmployeeName = `SELECT first_name, last_name, id FROM employees`;
-        db.query(sqlEmployeeName, (e, employeeName) => {
-            if (e) throw e;
-
-            let employeeArr = ['NONE'];
-            // Makes an array of employee names
-            employeeName.map(val => employeeArr.push(`${val.first_name} ${val.last_name}`));
-
-            // Start inquiry to create a new employee
+    // Promise handler to get names of eemployees and departments
+    Promise.all([getEmployees, getRoles])
+        .then(results => {
             line();
+            // Start inquirer to update role
             inquirer.prompt([
                 {
-                    type: 'input',
-                    name: 'first_name',
-                    message: 'First Name:'
-                },
-                {
-                    type: 'input',
-                    name: 'last_name',
-                    message: 'Last Name:'
-                },
-                {
-                    type: 'input',
-                    name: 'id',
-                    message: 'ID Number:'
+                    type: 'list',
+                    name: 'name',
+                    choices: results[0],
+                    message: 'Choose an employee to edit:'
                 },
                 {
                     type: 'list',
                     name: 'role',
-                    choices: roleArr,
-                    message: 'Role:'
-                },
-                {
-                    type: 'list',
-                    name: 'manager',
-                    choices: employeeArr,
-                    message: 'Manager:'
+                    choices: results[1],
+                    message: 'Role of selected employee:'
                 }
             ])
-                .then((answer) => {
-                    // Find role id of selected role
-                    const sqlRoleId = `SELECT id FROM roles WHERE title = '${answer.role}' LIMIT 1`;
-                    db.query(sqlRoleId, (e, roleId) => {
-                        if (e) throw e;
-                        
-                        // Checks if select result of role is not null
-                        let role_id;
-                        if (roleId.length) {
-                            role_id = roleId[0].id;
-                        } else {
-                            role_id = null;
-                        }
-
-                        // Parse first and last name from manager
-                        let first_name = answer.manager.split( ' ')[0];
-                        let last_name = answer.manager.split(' ')[1];
-                        
-                        // Find employee id of selected manager
-                        const sqlManagerId = `SELECT id FROM employees WHERE first_name = '${first_name}' AND last_name = '${last_name}'`;
-                        db.query(sqlManagerId, (e, managerId) => {
-                            if (e) throw e;
-
-                            // Checks if select result of employee is not null
-                            let manager_id;
-                            if (managerId.length) {
-                                manager_id = managerId[0].id;
-                            } else {
-                                manager_id = null;
-                            }
-
-                            // Add new employee into employees table
-                            const sql = `INSERT INTO employees (first_name, last_name, id, role_id, manager_id) VALUES (?, ?, ?, ? , ?)`;
-                            const params = [answer.first_name, answer.last_name, answer.id, role_id, manager_id];
-                            db.query(sql, params, e => {
-                                if (e) throw e;
-                                console.log(`\nAdded a new employee named '${answer.first_name} ${answer.last_name}'\n`);
-                                backToMain();
-                            });
-                        });           
-                    });
-                });
-        });
-    });
-};
-
-// Update role
-const updateEmployeeRole = function() {
-    getId('departments', 'name', 'Yashiro Commission')
-        .then(val => console.log(val));
-
-    getColumn('name', 'departments')
-        .then(val => console.log(val));
-
-    // // Select statement to get list of employee names
-    // const sqlEmployeeName = `SELECT first_name, last_name FROM employees`;
-    // db.query(sqlEmployeeName, (e, employeeName) => {
-    //     if (e) throw e;
-
-    //     // Makes an array of employee names
-    //     let employeeArr = [];
-    //     employeeName.map(val => employeeArr.push(`${val.first_name} ${val.last_name}`));
-        
-    //     // Select statement to get list of roles
-    //     const sqlRoleName = `SELECT title FROM roles`;
-    //     db.query(sqlRoleName, (e, roleName) => {
-    //         if (e) throw e;
-
-    //         // Makes an array of role names
-    //         let roleArr = [];
-    //         roleName.map(val => roleArr.push(`${val.title}`));
-
-    //         // Start inquiry to update employee role, first prompting a list of employee role
-    //         line();
-    //         inquirer.prompt([
-    //             {
-    //                 type: 'list',
-    //                 name: 'employee',
-    //                 choices: employeeArr,
-    //                 message: 'Choose an employee to edit:'
-    //             },
-    //             {
-    //                 type: 'list',
-    //                 name: 'role',
-    //                 choices: roleArr,
-    //                 message: 'Role of selected employee:'
-    //             }
-    //         ])
-    //             .then(answer => {
-    //                 // Find employee id of selected employee
+                .then(answer => {
+                    // Get id of selected employee
+                    let getEmployeeId = getId('employees', 'full_name', answer.name);
+                    // Get if of selected role
+                    let getRoleId = getId('roles', 'title', answer.role);
                     
-    //             });
-    //     });
-    // });
+                    // Promise handler to get id of employee and role
+                    Promise.all([answer, getEmployeeId, getRoleId])
+                        .then(results => {
+                            //parse answer from previous function
+                            let answer = results[0];
+                            // Updates employee's role
+                            console.log(results);
+                            updateEmployeeRoleSql(results[1], results[2]);
+                            console.log(`\nUpdated ${answer.name}'s role to ${answer.role}.\n`);
+                            backToMain();
+                        })
+                })        
+        });
+
+    //
 };
 
 module.exports = main;
