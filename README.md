@@ -51,7 +51,7 @@ A console application that lets you view departments, roles, and employees of an
 ![App Preview](/images/site-prev.png)
 
 ### Demo
-TO BE ADDED
+https://youtu.be/p6_v6L83KeM 
 
 ## Future Development
 - Update employee managers
