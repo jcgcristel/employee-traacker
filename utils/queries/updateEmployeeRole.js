@@ -1,6 +1,7 @@
 const inquirer = require("inquirer");
-const db = require('../db/connection');
+const db = require('../../db/connection');
 const { getId, getColumn } = require('./_queries');
+const { line } = require('../utils');
 
 // Update employee's role (and their department as a result)
 const updateEmployeeRoleSql = function(employeeId, roleId) {
@@ -11,8 +12,7 @@ const updateEmployeeRoleSql = function(employeeId, roleId) {
     }));
 }
 
-const updateEmployeeRole = function() {
-    console.log('--------------------------------------------------');
+const updateEmployeeRole = function(back) {
     // Get list of employee names
     let getEmployees = getColumn('full_name', 'employees');
     // Get list of roles names
@@ -52,6 +52,7 @@ const updateEmployeeRole = function() {
                             console.log(results);
                             updateEmployeeRoleSql(results[1], results[2]);
                             console.log(`\nUpdated ${answer.name}'s role to ${answer.role}.\n`);
+                            back();
                         })
                 });     
         });

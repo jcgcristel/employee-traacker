@@ -1,14 +1,15 @@
 const ctable = require('console.table');
-const db = require('../db/connection');
+const db = require('../../db/connection');
+const { line } = require('../utils');
 
 // Display table results
-const view = function(table) {
-    console.log('--------------------------------------------------');
+const view = function(table, back) {
+    line();
     const sql = `SELECT * FROM ${table}`;
     db.query(sql, (e, res) => {
         if (e) throw e;
         console.table(res);
-        backToMain();
+        back();
     })
 };
 

@@ -1,37 +1,40 @@
 const inquirer = require("inquirer");
-const db = require('../db/connection');
+const db = require('../../db/connection');
 const { getId, getColumn } = require('./_queries');
+const { line } = require('../utils');
 
 // Questions to add an employee
-const addEmployeeQuestions = [
-    {
-        type: 'input',
-        name: 'first_name',
-        message: 'First Name:'
-    },
-    {
-        type: 'input',
-        name: 'last_name',
-        message: 'Last Name:'
-    },
-    {
-        type: 'input',
-        name: 'id',
-        message: 'ID Number:'
-    },
-    {
-        type: 'list',
-        name: 'role',
-        choices: rolesArray,
-        message: 'Role:'
-    },
-    {
-        type: 'list',
-        name: 'manager',
-        choices: employeesArray,
-        message: 'Manager:'
-    }
-];
+const addEmployeeQuestions = function(roles, employee) {
+    return [
+        {
+            type: 'input',
+            name: 'first_name',
+            message: 'First Name:'
+        },
+        {
+            type: 'input',
+            name: 'last_name',
+            message: 'Last Name:'
+        },
+        {
+            type: 'input',
+            name: 'id',
+            message: 'ID Number:'
+        },
+        {
+            type: 'list',
+            name: 'role',
+            choices: roles,
+            message: 'Role:'
+        },
+        {
+            type: 'list',
+            name: 'manager',
+            choices: employees,
+            message: 'Manager:'
+        }
+    ];
+};
 
 // Set full name to be called during employee creation
 const setFullNameSql = function(firstName, lastName) {
@@ -52,8 +55,8 @@ const addEmployeeSql = function(firstName, lastName, id, roleId, managerId) {
     });
 };
 
-const addEmployee = function() {
-    console.log('--------------------------------------------------');
+const addEmployee = function(back) {
+    line();
     // Get list of role names
     let getRoles = getColumn('title', 'roles');
     // Get employee name
@@ -73,7 +76,7 @@ const addEmployee = function() {
             
             // Start inquirer to create a new employee
             line();
-            inquirer.prompt()
+            inquirer.prompt(addEmployeeQuestions(rolesArray, employeesArray))
             .then((answer) => {
                 // Gets id of selected role
                 let getRoleId = getId('roles', 'title', answer.role);                
@@ -88,6 +91,7 @@ const addEmployee = function() {
                         // Adds employee to employees table
                         addEmployeeSql(answer.first_name, answer.last_name, answer.id, results[1], results[2]);
                         console.log(`\nAdded new employee named ${answer.first_name} ${answer.last_name}.\n`)
+                        back();
                     });
             });
         });

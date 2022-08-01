@@ -1,5 +1,5 @@
 const db = require('./db/connection');
-const main = require('./utils/prompts');
+const {main} = require('./utils/app');
 
 // Connect to database
 db.connect(e => {
