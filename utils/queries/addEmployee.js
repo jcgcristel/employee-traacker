@@ -4,7 +4,7 @@ const { getId, getColumn } = require('./_queries');
 const { line } = require('../utils');
 
 // Questions to add an employee
-const addEmployeeQuestions = function(roles, employee) {
+const addEmployeeQuestions = function(roles, employees) {
     return [
         {
             type: 'input',
@@ -56,7 +56,6 @@ const addEmployeeSql = function(firstName, lastName, id, roleId, managerId) {
 };
 
 const addEmployee = function(back) {
-    line();
     // Get list of role names
     let getRoles = getColumn('title', 'roles');
     // Get employee name

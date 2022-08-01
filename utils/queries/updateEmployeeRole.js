@@ -7,9 +7,9 @@ const { line } = require('../utils');
 const updateEmployeeRoleSql = function(employeeId, roleId) {
     const sql = `UPDATE employees SET role_id = ? WHERE id = ?`;
     const params = [roleId, employeeId];
-    console.log(db.query(sql, params, e => {
+    db.query(sql, params, e => {
         if (e) throw e;
-    }));
+    });
 }
 
 const updateEmployeeRole = function(back) {
@@ -49,7 +49,6 @@ const updateEmployeeRole = function(back) {
                             //parse answer from previous function
                             let answer = results[0];
                             // Updates employee's role
-                            console.log(results);
                             updateEmployeeRoleSql(results[1], results[2]);
                             console.log(`\nUpdated ${answer.name}'s role to ${answer.role}.\n`);
                             back();

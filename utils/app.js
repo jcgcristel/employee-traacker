@@ -7,6 +7,7 @@ const { view } = require('./queries/_queries');
 const addDepartment = require('./queries/addDepartment');
 const addEmployee = require('./queries/addEmployee');
 const addRole = require('./queries/addRole');
+const updateEmployeeRole = require('./queries/updateEmployeeRole');
 
 const backToMain = function() {
     inquirer.prompt([{

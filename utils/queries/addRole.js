@@ -37,7 +37,7 @@ const addRoleSql = function(title, salary, departmentId) {
 const addRole = function(back) {
     // Get list of department names
     getColumn('name', 'departments')
-        .then(results => {            
+        .then(results => {
             line();
             // Start inquirer to create a new department
             inquirer.prompt(addRoleQuestions(results))
@@ -52,7 +52,7 @@ const addRole = function(back) {
                             let answer = results[0];
                             // Adds role to roles table
                             addRoleSql(answer.title, answer.salary, results[1]);
-                            console.log(`\nAdded new role by name ${title}.\n`);
+                            console.log(`\nAdded new role by name ${answer.title}.\n`);
                             back();
                         });
                 });
