@@ -6,6 +6,6 @@ db.connect(e => {
     if (e) throw e;
 
     console.log('Connected.');
-    
+
     main();
 });

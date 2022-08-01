@@ -79,6 +79,7 @@ const main = function() {
                     addRole();
                     break;
                 case 'Add an employee':
+                    addEmployee();
                     break;
                 case 'Update an employee role':
                     break;
@@ -165,7 +166,7 @@ const addRole = function() {
                     const params = [answer.title, answer.salary, department_id];
                     db.query(sql, params, e => {
                         if (e) throw e;
-                        console.log(`\nCreated a new role named '${answer.title}\n'`);
+                        console.log(`\nAdded a new role named '${answer.title}\n'`);
                         backToMain();
                     })
 
@@ -181,10 +182,103 @@ const addRole = function() {
 // Add employee
 const addEmployee = function() {
     // Select statement to get list of role names
-    const sqlRoleName = `SELECT name FROM roles`;
-    db.query(sqlRoleName, (e, roleName) => {
+    const sqlRoleName = `SELECT title FROM roles`;
+    db.query(sqlRoleName, (e, roleTitle) => {
         if (e) throw e;
+
+        let roleArr = ['NONE'];
+        // Makes an array of role names
+        roleTitle.map(val => roleArr.push(val.title));
+
+        // Select statement to get list of employees
+        const sqlEmployeeName = `SELECT first_name, last_name, id FROM employees`;
+        db.query(sqlEmployeeName, (e, employeeName) => {
+            if (e) throw e;
+
+            let employeeArr = ['NONE'];
+            // Makes an array of employee names
+            employeeName.map(val => employeeArr.push(`${val.first_name} ${val.last_name}`));
+
+            // Start inquiry to create a new employee
+            line();
+            inquirer.prompt([
+                {
+                    type: 'input',
+                    name: 'first_name',
+                    message: 'First Name:'
+                },
+                {
+                    type: 'input',
+                    name: 'last_name',
+                    message: 'Last Name:'
+                },
+                {
+                    type: 'input',
+                    name: 'id',
+                    message: 'ID Number:'
+                },
+                {
+                    type: 'list',
+                    name: 'role',
+                    choices: roleArr,
+                    message: 'Role:'
+                },
+                {
+                    type: 'list',
+                    name: 'manager',
+                    choices: employeeArr,
+                    message: 'Manager:'
+                }
+            ])
+                .then((answer) => {
+                    // Find role id of selected role
+                    const sqlRoleId = `SELECT id FROM roles WHERE title = '${answer.role}' LIMIT 1`;
+                    db.query(sqlRoleId, (e, roleId) => {
+                        if (e) throw e;
+                        
+                        // Checks if select result of role is not null
+                        let role_id;
+                        if (roleId.length) {
+                            role_id = roleId[0].id;
+                        } else {
+                            role_id = null;
+                        }
+
+                        // Parse first and last name from manager
+                        let first_name = answer.manager.split( ' ')[0];
+                        let last_name = answer.manager.split(' ')[1];
+                        
+                        // Find employee id of selected manager
+                        const sqlManagerId = `SELECT id FROM employees WHERE first_name = '${first_name}' AND last_name = '${last_name}'`;
+                        db.query(sqlManagerId, (e, managerId) => {
+                            if (e) throw e;
+
+                            // Checks if select result of employee is not null
+                            let manager_id;
+                            if (managerId.length) {
+                                manager_id = managerId[0].id;
+                            } else {
+                                manager_id = null;
+                            }
+
+                            // Add new employee into employees table
+                            const sql = `INSERT INTO employees (first_name, last_name, id, role_id, manager_id) VALUES (?, ?, ?, ? , ?)`;
+                            const params = [answer.first_name, answer.last_name, answer.id, role_id, manager_id];
+                            db.query(sql, params, e => {
+                                if (e) throw e;
+                                console.log(`\nAdded a new employee named '${answer.first_name} ${answer.last_name}'\n`);
+                                backToMain();
+                            })
+                        })              
+                    })
+                });
+        })
     })
+}
+
+// Update role
+const updateRole = function() {
+    const sql = 
 }
 
 module.exports = main;
