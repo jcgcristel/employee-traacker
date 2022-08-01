@@ -48,7 +48,7 @@ Using MySQL, run the following commands in the ./db directory:
 A console application that lets you view departments, roles, and employees of an organization. You can also add new departments, roles, and employees where employees are can be assigned a role, and in turn, assigned to a department. Employee roles can also be updated in cases where a transfer or mistake has occured.
 
 ### Application Screenshot
-![App Preview](\images\site-prev.png)
+![App Preview](/images/app-prev.png)
 
 ### Demo
 https://youtu.be/p6_v6L83KeM 
